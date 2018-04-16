@@ -12,10 +12,10 @@
 #include <kuka_arm/trajectory_sampler.h>
 
 TrajectorySampler::TrajectorySampler(ros::NodeHandle nh)
-  : nh_(nh),
-    cycle_counter(0),
-    move_group(PLANNING_GROUP),
-    eef_group(GRIPPER_GROUP)
+    : nh_(nh),
+      cycle_counter(0),
+      move_group(PLANNING_GROUP),
+      eef_group(GRIPPER_GROUP)
 {
   /*
    * Setup:
@@ -39,9 +39,9 @@ TrajectorySampler::TrajectorySampler(ros::NodeHandle nh)
 
   // Pointer to JointModelGroup for improved performance.
   joint_model_group =
-    move_group.getCurrentState()->getJointModelGroup(PLANNING_GROUP);
+      move_group.getCurrentState()->getJointModelGroup(PLANNING_GROUP);
   gripper_joint_model_group =
-    eef_group.getCurrentState()->getJointModelGroup(GRIPPER_GROUP);
+      eef_group.getCurrentState()->getJointModelGroup(GRIPPER_GROUP);
 
   /*
    * Collision Objects:
@@ -50,7 +50,7 @@ TrajectorySampler::TrajectorySampler(ros::NodeHandle nh)
    */
   std::vector<moveit_msgs::CollisionObject> collision_object_list;
   moveit_msgs::CollisionObject shelf_collision_object, bin_collision_object,
-              ground_collision_object;
+      ground_collision_object;
 
   ground_collision_object.header.frame_id = move_group.getPlanningFrame();
   ground_collision_object.id = "ground";
@@ -132,7 +132,6 @@ TrajectorySampler::TrajectorySampler(ros::NodeHandle nh)
     visual_tools.trigger();
     visual_tools.prompt("next step");
 
-
     /*
      * Get Pick and Drop location from param server
      * Plan motion to pick location
@@ -193,8 +192,8 @@ TrajectorySampler::TrajectorySampler(ros::NodeHandle nh)
      * Convert plan to a set of eef poses for IK calculation
      */
     robot_trajectory::RobotTrajectoryPtr robot_trajectory(
-      new robot_trajectory::RobotTrajectory(kinematic_model,
-                                            joint_model_group->getName()));
+        new robot_trajectory::RobotTrajectory(kinematic_model,
+                                              joint_model_group->getName()));
 
     // RobotState contains the current position/velocity/acceleration data
     moveit::core::RobotStatePtr robot_current_state;
@@ -206,7 +205,7 @@ TrajectorySampler::TrajectorySampler(ros::NodeHandle nh)
 
     // Declare service client for IK
     ros::ServiceClient client =
-      nh.serviceClient<kuka_arm::CalculateIK>("calculate_ik");
+        nh.serviceClient<kuka_arm::CalculateIK>("calculate_ik");
     kuka_arm::CalculateIK srv;
 
     /*
@@ -221,7 +220,7 @@ TrajectorySampler::TrajectorySampler(ros::NodeHandle nh)
                                rviz_visual_tools::WHITE, rviz_visual_tools::XXXXLARGE);
       visual_tools.trigger();
       // command the robot to execute the created plan
-      success = static_cast<bool> (move_group.execute(my_plan));
+      success = static_cast<bool>(move_group.execute(my_plan));
       ROS_INFO("Moving to pick location: %s",
                success ? "SUCCEEDED" : "FAILED");
     }
@@ -233,8 +232,8 @@ TrajectorySampler::TrajectorySampler(ros::NodeHandle nh)
       // Add eef poses from plan to our vector
       for (std::size_t i = 0; i < robot_trajectory->getWayPointCount(); ++i)
       {
-        const Eigen::Affine3d& eef_pose =
-          robot_trajectory->getWayPoint(i).getGlobalLinkTransform(joint_model_group->getLinkModel("link_6"));
+        const Eigen::Affine3d &eef_pose =
+            robot_trajectory->getWayPoint(i).getGlobalLinkTransform(joint_model_group->getLinkModel("link_6"));
         geometry_msgs::Pose gripper_pose;
         tf::poseEigenToMsg(eef_pose, gripper_pose);
         path.push_back(gripper_pose);
@@ -242,8 +241,8 @@ TrajectorySampler::TrajectorySampler(ros::NodeHandle nh)
       path_size = path.size();
 
       ROS_DEBUG_STREAM("Total poses in path: " << path.size()
-                       << "Actual points in plan: "
-                       << my_plan.trajectory_.joint_trajectory.points.size());
+                                               << "Actual points in plan: "
+                                               << my_plan.trajectory_.joint_trajectory.points.size());
       ROS_DEBUG_STREAM("point1: " << path[0] << "point2: " << path[path_size - 1]);
 
       // Call service to calculate IK
@@ -269,7 +268,7 @@ TrajectorySampler::TrajectorySampler(ros::NodeHandle nh)
       // Get the current set of joint values for the group.
       robot_current_state = move_group.getCurrentState();
       robot_current_state->copyJointGroupPositions(joint_model_group,
-          robot_joint_positions);
+                                                   robot_joint_positions);
 
       ROS_DEBUG("Total joints in robot_joint_positions: %zd %zd",
                 robot_joint_positions.size(), srv.response.points[0].positions.size());
@@ -284,7 +283,7 @@ TrajectorySampler::TrajectorySampler(ros::NodeHandle nh)
       {
         for (std::size_t j = 0; j < srv.response.points[0].positions.size(); ++j)
         {
-          robot_joint_positions[j] = srv.response.points[i].positions[j];  // radians
+          robot_joint_positions[j] = srv.response.points[i].positions[j]; // radians
         }
 
         move_group.setJointValueTarget(robot_joint_positions);
@@ -310,7 +309,7 @@ TrajectorySampler::TrajectorySampler(ros::NodeHandle nh)
 
     move_group.setStartStateToCurrentState();
     move_group.setPoseTarget(target_reach);
-    success = static_cast<bool> (move_group.move());
+    success = static_cast<bool>(move_group.move());
     ROS_INFO("Target reach: %s",
              success ? "SUCCEEDED" : "FAILED");
 
@@ -336,7 +335,7 @@ TrajectorySampler::TrajectorySampler(ros::NodeHandle nh)
     visual_tools.trigger();
     move_group.setStartStateToCurrentState();
     move_group.setPoseTarget(target_pose);
-    success = static_cast<bool> (move_group.move());
+    success = static_cast<bool>(move_group.move());
     ROS_INFO("Target retrieval: %s",
              success ? "SUCCEEDED" : "FAILED");
 
@@ -348,7 +347,7 @@ TrajectorySampler::TrajectorySampler(ros::NodeHandle nh)
     move_group.setStartStateToCurrentState();
     move_group.setPoseTarget(bin_pose);
 
-    success = static_cast<bool> (move_group.plan(my_plan));
+    success = static_cast<bool>(move_group.plan(my_plan));
     ROS_INFO("Visualizing plan to drop location: %s",
              success ? "SUCCEEDED" : "FAILED");
 
@@ -372,7 +371,7 @@ TrajectorySampler::TrajectorySampler(ros::NodeHandle nh)
                                rviz_visual_tools::WHITE, rviz_visual_tools::XXXXLARGE);
       visual_tools.trigger();
       // command the robot to execute the created plan
-      success = static_cast<bool> (move_group.execute(my_plan));
+      success = static_cast<bool>(move_group.execute(my_plan));
       ROS_INFO("Moving to drop location: %s",
                success ? "SUCCEEDED" : "FAILED");
     }
@@ -390,8 +389,8 @@ TrajectorySampler::TrajectorySampler(ros::NodeHandle nh)
       // add eef poses from plan to our vector
       for (std::size_t i = 0; i < robot_trajectory->getWayPointCount(); ++i)
       {
-        const Eigen::Affine3d& eef_pose =
-          robot_trajectory->getWayPoint(i).getGlobalLinkTransform(joint_model_group->getLinkModel("link_6"));
+        const Eigen::Affine3d &eef_pose =
+            robot_trajectory->getWayPoint(i).getGlobalLinkTransform(joint_model_group->getLinkModel("link_6"));
         geometry_msgs::Pose gripper_pose;
         tf::poseEigenToMsg(eef_pose, gripper_pose);
         path.push_back(gripper_pose);
@@ -399,8 +398,8 @@ TrajectorySampler::TrajectorySampler(ros::NodeHandle nh)
       path_size = path.size();
 
       ROS_DEBUG_STREAM("Total poses in path: " << path.size()
-                       << "Actual points in plan: "
-                       << my_plan.trajectory_.joint_trajectory.points.size());
+                                               << "Actual points in plan: "
+                                               << my_plan.trajectory_.joint_trajectory.points.size());
       ROS_DEBUG_STREAM("point1: " << path[0] << "point2: " << path[path_size - 1]);
 
       // Call service to calculate IK
@@ -430,7 +429,7 @@ TrajectorySampler::TrajectorySampler(ros::NodeHandle nh)
       // Next get the current set of joint values for the group.
       robot_joint_positions.clear();
       robot_current_state->copyJointGroupPositions(joint_model_group,
-          robot_joint_positions);
+                                                   robot_joint_positions);
 
       ROS_DEBUG("Total joints in robot_joint_positions: %zd %zd",
                 robot_joint_positions.size(), srv.response.points[0].positions.size());
@@ -445,7 +444,7 @@ TrajectorySampler::TrajectorySampler(ros::NodeHandle nh)
       {
         for (std::size_t j = 0; j < srv.response.points[0].positions.size(); ++j)
         {
-          robot_joint_positions[j] = srv.response.points[i].positions[j];  // radians
+          robot_joint_positions[j] = srv.response.points[i].positions[j]; // radians
         }
 
         move_group.setJointValueTarget(robot_joint_positions);
@@ -486,15 +485,15 @@ TrajectorySampler::TrajectorySampler(ros::NodeHandle nh)
     // Next get the current set of joint values for the group.
     robot_joint_positions.clear();
     robot_current_state->copyJointGroupPositions(joint_model_group,
-        robot_joint_positions);
+                                                 robot_joint_positions);
 
     for (std::size_t j = 0; j < robot_joint_positions.size(); ++j)
     {
-      robot_joint_positions[j] = 0;  // radians
+      robot_joint_positions[j] = 0; // radians
     }
 
     move_group.setJointValueTarget(robot_joint_positions);
-    success = static_cast<bool> (move_group.move());
+    success = static_cast<bool>(move_group.move());
     ROS_INFO("Robot motion to Idle state: %s", success ? "SUCCEEDED" : "FAILED");
 
     // Spawn another target
@@ -516,31 +515,31 @@ bool TrajectorySampler::OperateGripper(const bool &close_gripper)
 {
   // RobotState contains the current position/velocity/acceleration data
   moveit::core::RobotStatePtr gripper_current_state =
-    eef_group.getCurrentState();
+      eef_group.getCurrentState();
 
   // Next get the current set of joint values for the group.
   std::vector<double> gripper_joint_positions;
   gripper_current_state->copyJointGroupPositions(gripper_joint_model_group,
-      gripper_joint_positions);
+                                                 gripper_joint_positions);
 
   ROS_DEBUG("No. of joints in eef_group: %zd", gripper_joint_positions.size());
 
   // Set finger joint values
   if (close_gripper)
   {
-    gripper_joint_positions[0] = 0.02;  // radians
-    gripper_joint_positions[1] = 0.02;  // radians
+    gripper_joint_positions[0] = 0.02; // radians
+    gripper_joint_positions[1] = 0.02; // radians
   }
   else
   {
-    gripper_joint_positions[0] = -0.01;  // radians
-    gripper_joint_positions[1] = -0.01;  // radians
+    gripper_joint_positions[0] = -0.01; // radians
+    gripper_joint_positions[1] = -0.01; // radians
   }
 
   eef_group.setJointValueTarget(gripper_joint_positions);
   ros::Duration(1.5).sleep();
 
-  bool success = static_cast<bool> (eef_group.move());
+  bool success = static_cast<bool>(eef_group.move());
   return success;
 }
 
@@ -559,14 +558,14 @@ bool TrajectorySampler::CloseGripper()
 }
 
 bool TrajectorySampler::SetupCollisionObject(const std::string &object_id,
-    const std::string &mesh_path,
-    const geometry_msgs::Pose &object_pose,
-    moveit_msgs::CollisionObject &collision_object)
+                                             const std::string &mesh_path,
+                                             const geometry_msgs::Pose &object_pose,
+                                             moveit_msgs::CollisionObject &collision_object)
 {
   collision_object.header.frame_id = move_group.getPlanningFrame();
   collision_object.id = object_id;
 
-  shapes::Mesh* m = shapes::createMeshFromResource(mesh_path);
+  shapes::Mesh *m = shapes::createMeshFromResource(mesh_path);
 
   ROS_DEBUG_STREAM(object_id << " mesh loaded");
 
@@ -585,7 +584,6 @@ bool TrajectorySampler::SetupCollisionObject(const std::string &object_id,
   collision_object.mesh_poses.push_back(collision_object.mesh_poses[0]);
   collision_object.operation = collision_object.ADD;
 }
-
 
 TrajectorySampler::~TrajectorySampler() {}
 
