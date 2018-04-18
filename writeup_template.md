@@ -35,13 +35,13 @@
 ### Kinematic Analysis
 #### 1. Run the forward_kinematics demo and evaluate the kr210.urdf.xacro file to perform kinematic analysis of Kuka KR210 robot and derive its DH parameters.
 
-The goal of forward kinematics is to calculate the pose of the end-effector given all the joint angles, six in this case. You should use the modified Denavit-Hartenberg parameter convention to associate reference frames to each link and complete the DH parameter table.
+The goal of forward kinematics is to calculate the pose of the end-effector given all the joint angles, six in this case. By Using the modified Denavit-Hartenberg parameter convention to associate reference frames to each link and complete the DH parameter table.
 
-Using your DH parameter table, you can create individual transforms between various links. It is best to create the transforms symbolically, and then substitute numerical values for the non-zero terms as the last step.
+Using DH parameter table, Create individual transforms between various links. It is best to create the transforms symbolically, and then substitute numerical values for the non-zero terms as the last step.
 
 Inverse kinematics (IK) is essentially the opposite idea of forwards kinematics. In this case, the pose (i.e., position and orientation) of the end effector is known and the goal is to calculate the joint angles of the manipulator.
 
-![alt text][image1]
+![][image1]  
 
 #### 2. Using the DH parameter table you derived earlier, create individual transformation matrices about each joint. In addition, also generate a generalized homogeneous transform between base_link and gripper_link using only end-effector(gripper) pose.
   
@@ -74,9 +74,9 @@ where l, m and n are orthonormal vectors representing the end-effector orientati
 
 Since n is the vector along the z-axis of the gripper_link, we can say the following:  
 
-![][image15] 
-Where,
+![][image15]  
 
+Where,
 Px, Py, Pz = end-effector positions
 
 Wx, Wy, Wz = wrist positions
@@ -86,25 +86,42 @@ d6 = from DH table
 l = end-effector length
 
 Now, in order to calculate nx, ny, and nz, let's continue from the previous section where you calculated the rotation matrix to correct the difference between the URDF and the DH reference frames for the end-effector.
+
+After obtain this correctional rotation matrix,  next calculate end-effector pose with respect to the base_link. In the Compositions of Rotations section, we covered different conventions regarding Euler angles, and how to choose the correct convention.
+
+One such convention is the x-y-z extrinsic rotations. The resulting rotational matrix using this convention to transform from one fixed frame to another, would be:
+```
+Rrpy = Rot(Z, yaw) * Rot(Y, pitch) * Rot(X, roll) * R_corr
+```
+Where R_corr is the correctional rotation matrix.
+
+The roll, pitch, and yaw values for the gripper are obtained from the simulation in ROS. But since these values are returned in quaternions, you can use the transformations.py module from the TF package. The euler_from_quaternions() method will output the roll, pitch, and yaw values.
+Now that with the wrist center position, follow the simple math presented in this section to derive the equations for first three joints.
+
+Calculating theta 1 will be relatively straightforward once you have the wrist center position from above. Theta 2 and theta 3 can be relatively tricky to visualize. The following diagram depicts the angles for you.
 ![][image2]  
+The labels 2, 3 and WC are Joint 2, Joint 3, and the Wrist Center, respectively. You can obtain, or rather visualize, the triangle between the three if you project the joints onto the z-y plane corresponding to the world reference frame. From your DH parameters, you can calculate the distance between each joint above. Using trigonometry, specifically the Cosine Laws, you can calculate theta 2 and theta 3.
 
- The DH convention uses four individual transforms,
+For the Inverse Orientation problem, we need to find values of the final three joint variables.
 
-![][image8]
-![][image5]  
+Using the individual DH transforms we can obtain the resultant transform and hence resultant rotation by:
 
-to describe the relative translation and orientation of link (i-1) to link (i). In matrix form, this transform is,
+```
+R0_6 = R0_1*R1_2*R2_3*R3_4*R4_5*R5_6
+```
 
-![][image9]  
+Since the overall RPY (Roll Pitch Yaw) rotation between base_link and gripper_link must be equal to the product of individual rotations between respective links, following holds true:
+```
+R0_6 = Rrpy
+```
+where,
 
-In addition to individual transforms, you can also determine a complete homogeneous transform between the base_link and the gripper_link (end-effector) using just the end-effector pose (position+rotation). Remember that the homogeneous transform consists of a rotation part and a translation part as follows:
- 
-![][image10]  
+Rrpy = Homogeneous RPY rotation between base_link and gripper_link as calculated above.
 
-where Px, Py, Pz represent the position of end-effector w.r.t. base_link and RT represent the rotation part. Keep in mind that RT can be constructed using the Roll-Pitch-Yaw angles of the end-effector (which will be provided from the simulator).
+We can substitute the values we calculated for joints 1 to 3 in their respective individual rotation matrices and pre-multiply both sides of the above equation by inv(R0_3) which leads to:
 
-
-
+R3_6 = inv(R0_3) * Rrpy
+The resultant matrix on the RHS (Right Hand Side of the equation) does not have any variables after substituting the joint angle values, and hence comparing LHS (Left Hand Side of the equation) with RHS will result in equations for joint 4, 5, and 6.  
 
 ![][image4]  
 
