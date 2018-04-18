@@ -123,6 +123,14 @@ We can substitute the values we calculated for joints 1 to 3 in their respective
 R3_6 = inv(R0_3) * Rrpy
 The resultant matrix on the RHS (Right Hand Side of the equation) does not have any variables after substituting the joint angle values, and hence comparing LHS (Left Hand Side of the equation) with RHS will result in equations for joint 4, 5, and 6.  
 
+to describe the relative translation and orientation of link (i-1) to link (i). In matrix form, this transform is,
+
+![][image9]    
+Thus, for a manipulator with n-joints the overall transformation between the base and end effector involves n-multiples of Equation (1). Clearly this can result in complicated, highly non-linear equations that, in general, can have zero or multiple solutions. Further, these mathematical solutions may in fact violate real-world joint limits so care is needed when choosing among the mathematically possible solution(s). Let???s pause for a moment and think about what these different solutions physically mean.
+
+Consider the case of an anthropomorphic (RRR) manipulator. The name comes from the fact that joint 1 is analogous to the human hip joint (imagine twisting at the waist about a vertical axis), joint 2 is the shoulder, and joint 3 is the elbow. If all we care about is the position of the end effector, there are four possible ways to reach a 3D point in the manipulator's workspace. Notice the shading on each revolute joint. The top row corresponds to the elbow up solutions. Column 1 corresponds solutions with hip joint = theta versus column 2 with hip joint = theta + pi.  
+![][image5]   
+
 ![][image4]  
 
 Step 1: is to complete the DH parameter table for the manipulator. Hint: place the origin of frames 4, 5, and 6 coincident with the WC.
@@ -154,6 +162,7 @@ Check the source code and read annotation for detailed explanation.
 And just for fun, another demo video:  
 
 [![IMAGE ALT TEXT HERE](https://img.youtube.com/vi/MdpdmbwKlCA/0.jpg)](https://www.youtube.com/watch?v=MdpdmbwKlCA)
+
 
 
 
