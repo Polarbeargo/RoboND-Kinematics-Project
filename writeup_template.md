@@ -1,11 +1,11 @@
 ## Project: Kinematics Pick & Place
-### Writeup Template: You can use this file as a template for your writeup if you want to submit it as a markdown file, but feel free to use some other method and submit a pdf if you prefer.
 
 ---
+![][image6]  
 
-
+* This project is working with a simulation of Kuka KR210 to pick up cans from a shelf and then put them in a dropbox.  
+  
 **Steps to complete the project:**  
-
 
 1. Set up your ROS Workspace.
 2. Download or clone the [project repository](https://github.com/udacity/RoboND-Kinematics-Project) into the ***src*** directory of your ROS Workspace.  
@@ -21,42 +21,86 @@
 [image2]: ./misc_images/misc3.png
 [image3]: ./misc_images/misc2.png
 [image4]: ./misc_images/misc4.png
-## [Rubric](https://review.udacity.com/#!/rubrics/972/view) Points
-### Here I will consider the rubric points individually and describe how I addressed each point in my implementation.  
-
----
-### Writeup / README
-
-#### 1. Provide a Writeup / README that includes all the rubric points and how you addressed each one.  You can submit your writeup as markdown or pdf.  
-
-You're reading it!
-
+[image5]: ./misc_images/misc5.png
+[image6]: ./misc_images/misc6.png
+[image7]: ./misc_images/misc7.png
+[image8]: ./misc_images/misc8.png
+[image9]: ./misc_images/misc9.png
+[image10]: ./misc_images/misc10.png
+[image11]: ./misc_images/image-3.png
+[image12]: ./misc_images/image-4.png
+[image13]: ./misc_images/image-5.png
 ### Kinematic Analysis
 #### 1. Run the forward_kinematics demo and evaluate the kr210.urdf.xacro file to perform kinematic analysis of Kuka KR210 robot and derive its DH parameters.
 
-Here is an example of how to include an image in your writeup.
+The goal of forward kinematics is to calculate the pose of the end-effector given all the joint angles, six in this case. You should use the modified Denavit-Hartenberg parameter convention to associate reference frames to each link and complete the DH parameter table.
+
+Using your DH parameter table, you can create individual transforms between various links. It is best to create the transforms symbolically, and then substitute numerical values for the non-zero terms as the last step.
+
+Inverse kinematics (IK) is essentially the opposite idea of forwards kinematics. In this case, the pose (i.e., position and orientation) of the end effector is known and the goal is to calculate the joint angles of the manipulator.
 
 ![alt text][image1]
 
 #### 2. Using the DH parameter table you derived earlier, create individual transformation matrices about each joint. In addition, also generate a generalized homogeneous transform between base_link and gripper_link using only end-effector(gripper) pose.
+  
+![][image7]  
 
-Links | alpha(i-1) | a(i-1) | d(i-1) | theta(i)
---- | --- | --- | --- | ---
-0->1 | 0 | 0 | L1 | qi
-1->2 | - pi/2 | L2 | 0 | -pi/2 + q2
-2->3 | 0 | 0 | 0 | 0
-3->4 |  0 | 0 | 0 | 0
-4->5 | 0 | 0 | 0 | 0
-5->6 | 0 | 0 | 0 | 0
-6->EE | 0 | 0 | 0 | 0
+* DH parameters used specifically in this project as follow:
+
+|ID   |![alpha][alpha_i-1] |![a][a] |![d][d] |![theta][theta]    |
+|:---:|:------------------:|:------:|:------:|:-----------------:| 
+|    1|                  0 |      0 |   0.75 |     ![q1][theta1] |
+|    2|      ![-pi2][-pi2] |   0.35 |      0 |  ![q2][theta2-90] |
+|    3|                  0 |   1.25 |      0 |     ![q3][theta3] |
+|    4|      ![-pi2][-pi2] | -0.054 |   1.50 |     ![q4][theta4] |
+|    5|        ![pi2][pi2] |      0 |      0 |     ![q5][theta5] |
+|    6|      ![-pi2][-pi2] |      0 |      0 |     ![q6][theta6] |
+|   EE|                  0 |      0 |  0.303 |                 0 |
+
+#### 3. Decouple Inverse Kinematics problem into Inverse Position Kinematics and inverse Orientation Kinematics; doing so derive the equations to calculate all individual joint angles.  
 
 
-#### 3. Decouple Inverse Kinematics problem into Inverse Position Kinematics and inverse Orientation Kinematics; doing so derive the equations to calculate all individual joint angles.
+![][image2]    
 
-And here's where you can draw out and show your math for the derivation of your theta angles. 
+The DH convention uses four individual transforms,
 
-![alt text][image2]
-![alt text][image4]
+![][image8]
+![][image5]  
+
+to describe the relative translation and orientation of link (i-1) to link (i). In matrix form, this transform is,
+
+![][image9]  
+
+In addition to individual transforms, you can also determine a complete homogeneous transform between the base_link and the gripper_link (end-effector) using just the end-effector pose (position+rotation). Remember that the homogeneous transform consists of a rotation part and a translation part as follows:
+ 
+![][image10]  
+
+where Px, Py, Pz represent the position of end-effector w.r.t. base_link and RT represent the rotation part. Keep in mind that RT can be constructed using the Roll-Pitch-Yaw angles of the end-effector (which will be provided from the simulator).
+
+
+
+
+![][image4]  
+
+Step 1: is to complete the DH parameter table for the manipulator. Hint: place the origin of frames 4, 5, and 6 coincident with the WC.
+
+Step 2: is to find the location of the WC relative to the base frame. Recall that the overall homogeneous transform between the base and end effector has the form, 
+
+![][image11]  
+
+If, for example, you choose z4 parallel to z6 and pointing from the WC to the EE, then this displacement is a simple translation along z6. The magnitude of this displacement, let???s call it d, would depend on the dimensions of the manipulator and are defined in the URDF file. Further, since r13, r23, and r33 define the Z-axis of the EE relative to the base frame, the Cartesian coordinates of the WC is,  
+
+![][image12]  
+
+Step 3: find joint variables, q1, q2 and q3, such that the WC has coordinates equal to equation (3). This is the hard step. One way to attack the problem is by repeatedly projecting links onto planes and using trigonometry to solve for joint angles. Unfortunately, there is no generic recipe that works for all manipulators so you will have to experiment. The example in the next section will give you some useful guidance.
+
+Step 4: once the first three joint variables are known,R via application of homogeneous transforms up to the WC.
+
+Step 5: find a set of Euler angles corresponding to the rotation matrix,  
+
+![][image13]  
+
+Step 6: choose the correct solution among the set of possible solutions
 
 ### Project Implementation
 
@@ -67,6 +111,6 @@ Here I'll talk about the code, what techniques I used, what worked and why, wher
 
 
 And just for fun, another example image:
-![alt text][image3]
+[![IMAGE ALT TEXT HERE](https://img.youtube.com/vi/MdpdmbwKlCA/0.jpg)](https://www.youtube.com/watch?v=MdpdmbwKlCA)
 
 
