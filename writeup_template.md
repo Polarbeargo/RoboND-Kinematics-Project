@@ -30,6 +30,8 @@
 [image11]: ./misc_images/image-3.png
 [image12]: ./misc_images/image-4.png
 [image13]: ./misc_images/image-5.png
+[image14]: ./misc_images/misc11.png
+[image15]: ./misc_images/misc12.png
 ### Kinematic Analysis
 #### 1. Run the forward_kinematics demo and evaluate the kr210.urdf.xacro file to perform kinematic analysis of Kuka KR210 robot and derive its DH parameters.
 
@@ -59,10 +61,34 @@ Inverse kinematics (IK) is essentially the opposite idea of forwards kinematics.
 
 #### 3. Decouple Inverse Kinematics problem into Inverse Position Kinematics and inverse Orientation Kinematics; doing so derive the equations to calculate all individual joint angles.  
 
+Since the last three joints in our robot are revolute and their joint axes intersect at a single point, we have a case of spherical wrist with joint_5 being the common intersection point and hence the wrist center.
 
-![][image2]    
+This allows us to kinematically decouple the IK problem into Inverse Position and Inverse Orientation
+Since we have the case of a spherical wrist involving joints 4,5,6, the position of the wrist center is governed by the first three joints. We can obtain the position of the wrist center by using the complete transformation matrix we derived in the last section based on the end-effector pose.
 
-The DH convention uses four individual transforms,
+For the sake of simplification, let us symbolically define our homogeneous transform as following:  
+
+![][image14]  
+
+where l, m and n are orthonormal vectors representing the end-effector orientation along X, Y, Z axes of the local coordinate frame.
+
+Since n is the vector along the z-axis of the gripper_link, we can say the following:  
+
+![][image15] 
+Where,
+
+Px, Py, Pz = end-effector positions
+
+Wx, Wy, Wz = wrist positions
+
+d6 = from DH table
+
+l = end-effector length
+
+Now, in order to calculate nx, ny, and nz, let's continue from the previous section where you calculated the rotation matrix to correct the difference between the URDF and the DH reference frames for the end-effector.
+![][image2]  
+
+ The DH convention uses four individual transforms,
 
 ![][image8]
 ![][image5]  
@@ -113,5 +139,6 @@ Here I'll talk about the code, what techniques I used, what worked and why, wher
 And just for fun, another demo video:  
 
 [![IMAGE ALT TEXT HERE](https://img.youtube.com/vi/MdpdmbwKlCA/0.jpg)](https://www.youtube.com/watch?v=MdpdmbwKlCA)
+
 
 
