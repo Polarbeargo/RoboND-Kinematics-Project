@@ -110,7 +110,8 @@ Step 6: choose the correct solution among the set of possible solutions
 Here I'll talk about the code, what techniques I used, what worked and why, where the implementation might fail and how I might improve it if I were going to pursue this project further.  
 
 
-And just for fun, another example image:
+And just for fun, another example image:  
+
 [![IMAGE ALT TEXT HERE](https://img.youtube.com/vi/MdpdmbwKlCA/0.jpg)](https://www.youtube.com/watch?v=MdpdmbwKlCA)
 
 
